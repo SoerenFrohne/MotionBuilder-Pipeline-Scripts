@@ -28,7 +28,14 @@ def GetAngleBetweenVectors(v1, v2):
     a.Normalize()
     b.Normalize()
     dot = a.DotProduct(b)
-    return math.acos(dot)
+    return math.acos(dot)      
+    
+def GetDotProduct(v1, v2):
+    a = FBVector3d(v1[0], v1[1], v1[2])
+    b = FBVector3d(v2[0], v2[1], v2[2])
+    a.Normalize()
+    b.Normalize()
+    return a.DotProduct(b)
 
 RAD2DEGREE = 57.295779513082
 
@@ -81,32 +88,38 @@ for i in range(fStart, fStop):
     FBMatrixToRotation(rotation, mat, FBRotationOrder.kFBXYZ)
     
     # Nullify rotation around the x and z axis while avoiding gimbal lock
+    
+    # Set origin axes
     up = FBVector3d(0,100,0)
-    forward = FBVector4d(0,0,100,1) 
+    forward = FBVector3d(0,0,100) 
+    left = FBVector3d(-100,0,0)
+    origin = FBMatrix([left, up, forward])
 
-    print hips.RotationOrder
+    # Get target axes
     rotationMatrix = FBMatrix()
     FBRotationToMatrix(rotationMatrix, rotation, FBRotationOrder.kFBXYZ)
     
-    forwardResult = FBMatrix()
+    leftResult = Multiply(rotationMatrix, left)
+    leftResult[1] = 0
+    
     forwardResult = Multiply(rotationMatrix, forward)
-    forwardResult[1] = 0
-    #forwardResult += position
-    #left = forwardResult.CrossProduct(up)
-    #left.Normalize()
-    #left *= 100
+    forwardResult[1] = 0    
     
-    angle = GetAngleBetweenVectors(forward, forwardResult)
+    leftAngle = GetAngleBetweenVectors(forward, leftResult)
+    fwdAngle = GetAngleBetweenVectors(forward, forwardResult)
+    sign = GetDotProduct(left, forwardResult)
     
-    #FBMult(forwardResult, rotationMatrix, forward)
-    #forwardResult = rotationMatrix * forward
-    print angle * RAD2DEGREE
+    if sign > 0: 
+        rYCurve.KeyAdd(time, -fwdAngle * RAD2DEGREE)
+    else:
+        rYCurve.KeyAdd(time, fwdAngle * RAD2DEGREE)
     
-    #quaternion = FBVector4d()
-    #FBRotationToQuaternion(quaternion, rotation, FBRotationOrder.kFBXYZ)
-    #FBQuaternionToRotation(rotation, quaternion, FBRotationOrder.kFBXYZ)
-   
-    rXCurve.KeyAdd(time, 0)
-    rYCurve.KeyAdd(time, angle * RAD2DEGREE)
-    rZCurve.KeyAdd(time, 0)
+    if leftAngle > 0: 
+       rXCurve.KeyAdd(time, 0)
+       rZCurve.KeyAdd(time, 0)
+    else:
+       rXCurve.KeyAdd(time, 180)
+       rZCurve.KeyAdd(time, 180) 
+    
+playerControl.Goto(FBTime(0, 0, 0, 1))
 
