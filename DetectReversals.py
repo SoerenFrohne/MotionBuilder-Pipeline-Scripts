@@ -16,10 +16,11 @@ NAMESPACE = "mixamorig"
 FOREARM_NAME = "RightForeArm"
 HAND_NAME = "RightHand"
 BALL_NAME = "Ball"
-ROOT_NAME = ""  # Name of the skeletons root (leave empty when it has no root)
+#BALL_PARENT = "Hips"
+ROOT_NAME = "mixamorig:Hips"  # Name of the skeletons root (leave empty when it has no root)
 N = 6  # number of neighbours with unchanged gradient
 ROT_MIN = 18.5  # Forearm rotation threshold to detect, when the ball should be grounded
-BALL_OFFSET = 8.0  # Radius of the ball
+BALL_OFFSET = 9.0  # Radius of the ball
 
 
 # Calculate transform matrix of an object (t1) relative to another one (t2)
@@ -43,7 +44,7 @@ playerControl.GotoStart()
 
 # Load models and clean up previous edits
 if ROOT_NAME != "":
-    root = FBFindModelByLabelName(NAMESPACE + ":" + ROOT_NAME)
+    root = FBFindModelByLabelName(ROOT_NAME)
 else :
     root = FBCreateObject( "Browsing/Templates/Elements", "Null", "root" )
     print "No character root existing: Root created manually"
@@ -92,7 +93,7 @@ for k in range(fStart, fStop):
     else:
         history += 1
     gradient = currentGradient
-# print "Found Reversals:", reversalsX
+print "Found Reversals:", reversalsX
 
 # Loop 1: Add keys and set non-numeric properties
 isLastUp = True
@@ -122,16 +123,24 @@ for i in range(len(reversalsX)):
     
     key = ballTYCurve.Keys[y]
     key.Interpolation = FBInterpolation.kFBInterpolationCubic
-    key.TangentMode = FBTangentMode.kFBTangentModeAuto
+    key.TangentMode = FBTangentMode.kFBTangentModeBreak
     key.TangentConstantMode = FBTangentConstantMode.kFBTangentConstantModeNormal
     
     # set up z-translation curve
-    z = ballTZCurve.KeyAdd(time, localBallPos[2])
+    z = ballTZCurve.KeyAdd(time, localBallPos[2] + BALL_OFFSET)
     key = ballTZCurve.Keys[z]
     key.Interpolation = FBInterpolation.kFBInterpolationLinear
 
+# Loop 2: With all keys in place, set tangent properties
 playerControl.GotoStart()
-
+for i in range(0, len(ballTYCurve.Keys)):
+    key = ballTYCurve.Keys[i]
+    time = key.Time
+    
+    key.LeftDerivative = -45.0
+    key.RightDerivative = 45
+    print time.GetFrame(), ":", key.LeftDerivative
+    
 # Clean up
 if ROOT_NAME is "":
     FBDeleteObjectsByName(root.Name)
