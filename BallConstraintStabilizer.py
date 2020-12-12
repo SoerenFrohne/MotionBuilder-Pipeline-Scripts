@@ -43,7 +43,11 @@ reference = FBFindModelByLabelName(REFERENCE_NAME)
 constraint = FindConstraintByName(CONSTRAINT_NAME)
 
 # Prepare animation
-
+constraint.Active = False
+constraint.Weight.SetAnimated(True)
+weightNode = constraint.Weight.GetAnimationNode()
+weightCurve = weightNode.FCurve
+weightCurve.EditClear()
 
 # Calculate distances and set constraint weights
 for f in range(fStart, fStop):    
@@ -57,7 +61,21 @@ for f in range(fStart, fStop):
     hand.GetVector(handPos, FBModelTransformationType.kModelInverse_Translation, True)
     ball.GetVector(ballPos, FBModelTransformationType.kModelInverse_Translation, True)
     distance = GetDistance(handPos, ballPos)
-    print time.GetFrame(), ":", distance
     
     # Set constraint weight
+    k = None
+    if distance <= DISTANCE_THRESHOLD:
+        k = weightCurve.KeyAdd(time, 100)
+    else:
+        k = weightCurve.KeyAdd(time, 0)
+    key = weightCurve.Keys[k]
+    key.Interpolation = FBInterpolation.kFBInterpolationLinear
+
+# Filter curve and clean up
+keyreducer = FBFilterManager().CreateFilter ('Key Reducing')
+keyreducer.Start = FBTime(0, 0, 0, fStart)
+keyreducer.Stop = FBTime(0, 0, 0, fStop)
+keyreducer.Apply(weightNode, True)
+constraint.Active = True 
+
      
