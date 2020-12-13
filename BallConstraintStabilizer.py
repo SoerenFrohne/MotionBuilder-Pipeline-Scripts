@@ -11,9 +11,9 @@ import os
 
 # GLOBAL_PARAMETERS
 HAND_NAME = "mixamorig:RightHand"
-BALL_NAME = "Ball"
+BALL_NAME = "BallR"
 REFERENCE_NAME = "mixamorig:Hips"
-CONSTRAINT_NAME = "Ball-Hand"
+CONSTRAINT_NAME = "Ball2RightHand"
 DISTANCE_THRESHOLD = 15.0
 
 def GetDistance(v1, v2):

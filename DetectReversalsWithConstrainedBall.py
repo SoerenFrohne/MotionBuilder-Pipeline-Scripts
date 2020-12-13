@@ -16,7 +16,6 @@ NAMESPACE = "mixamorig"
 FOREARM_NAME = "RightForeArm"
 HAND_NAME = "RightHand"
 BALL_NAME = "BallR"
-#BALL_PARENT = "Hips"
 ROOT_NAME = "mixamorig:Hips"  # Name of the skeletons root (leave empty when it has no root)
 N = 6  # number of neighbours with unchanged gradient
 ROT_MIN = 18.5  # Forearm rotation threshold to detect, when the ball should be grounded
@@ -52,14 +51,12 @@ else :
 rightArm = FBFindModelByLabelName(NAMESPACE + ":" + FOREARM_NAME)
 rightHand = FBFindModelByLabelName(NAMESPACE + ":" + HAND_NAME)
 ball = FBFindModelByLabelName(BALL_NAME)
-ball.Translation.SetAnimated(True)
-ballAnimNode = ball.Translation.GetAnimationNode()
-ballTXCurve = ballAnimNode.Nodes[0].FCurve
-ballTYCurve = ballAnimNode.Nodes[1].FCurve
-ballTZCurve = ballAnimNode.Nodes[2].FCurve
-ballTXCurve.EditClear()
-ballTYCurve.EditClear()
-ballTZCurve.EditClear()
+
+candidate = ball.PropertyList.Find('IsUpCandidate')
+candidate.SetAnimated(True)
+candidateAnimNode = candidate.GetAnimationNode()
+candidateFCurve = candidateAnimNode.FCurve
+candidateFCurve.EditClear()
 
 # Get local ground value
 if root: 
@@ -103,43 +100,17 @@ for i in range(len(reversalsX)):
     playerControl.Goto(time)
     scene.Evaluate()
 
-    # calculate local ball position respectively to its parent
-    ballTransform = get_relative_transform(rightHand, root)
-    localBallPos = FBVector3d(ballTransform[12], ballTransform[13], ballTransform[14])
-
-    # set up x-translation curve
-    x = ballTXCurve.KeyAdd(time, localBallPos[0])
-    key = ballTXCurve.Keys[x]
-    key.Interpolation = FBInterpolation.kFBInterpolationLinear
-
     # set up y-translation curve
     isCurrentUp = rightArm.Rotation[1] > ROT_MIN
     
     if isCurrentUp == False and isLastUp == True:
-        y = ballTYCurve.KeyAdd(time, LOCAL_GROUND + BALL_OFFSET)
+        y = candidateFCurve.KeyAdd(time, 0)
     else:
-        y = ballTYCurve.KeyAdd(time, localBallPos[1] - BALL_OFFSET)
+        y = candidateFCurve.KeyAdd(time, 100)
     isLastUp = isCurrentUp
     
-    key = ballTYCurve.Keys[y]
-    key.Interpolation = FBInterpolation.kFBInterpolationCubic
-    key.TangentMode = FBTangentMode.kFBTangentModeBreak
-    key.TangentConstantMode = FBTangentConstantMode.kFBTangentConstantModeNormal
-    
-    # set up z-translation curve
-    z = ballTZCurve.KeyAdd(time, localBallPos[2] + BALL_OFFSET)
-    key = ballTZCurve.Keys[z]
+    key = candidateFCurve.Keys[y]
     key.Interpolation = FBInterpolation.kFBInterpolationLinear
-
-# Loop 2: With all keys in place, set tangent properties
-playerControl.GotoStart()
-for i in range(0, len(ballTYCurve.Keys)):
-    key = ballTYCurve.Keys[i]
-    time = key.Time
-    
-    key.LeftDerivative = -45.0
-    key.RightDerivative = 45
-    print time.GetFrame(), ":", key.LeftDerivative
     
 # Clean up
 if ROOT_NAME is "":

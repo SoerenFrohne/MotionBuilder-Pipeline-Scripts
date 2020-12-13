@@ -2,7 +2,7 @@ from pyfbsdk import *
 import os
 
 # GLOBAL_PARAMETERS
-CONSTRAINT_NAME = "Ball-Hand"
+CONSTRAINT_NAME = "Ball2RightHand"
 
 def FindConstraintByName(name):
     constraints = FBSystem().Scene.Constraints
