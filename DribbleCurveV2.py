@@ -72,35 +72,31 @@ for frame in range(1, len(candidateFCurve.Keys)):
         previousPos = mvu.GetGlobalPositionAtTime(ball, preUp.Time)
         nextUpPos= mvu.GetGlobalPositionAtTime(ball, nextUp.Time)
         
-        globalPos = nextUpPos - previousPos
-        globalPos /= 2.0
-        globalPos += previousPos
+        direction = nextUpPos - previousPos
+        direction /= 2.0
+        globalPos = previousPos + direction
         globalPos[1] = 0     
         #print globalPos
         
         # Lokale Position bestimmen
         rootPos = mvu.GetGlobalPositionAtTime(root, key.Time)
         pos = globalPos - rootPos
-        
-        #rootTransform = mvu.GetTransform(root)
-        #ballTransform = mvu.GetTransform(ball)
-        #localTransform = FBMatrix()
-        #FBGetLocalMatrix(localTransform, rootTransform, ballTransform)
-        
-        #rootTransform.Inverse()
-        
-        #FBVectorMatrixMult(lVector4d, lMatrix, lVector4d)
-        #pos = mvu.Multiply(rootTransform, globalPos)
-        
-        #ball.GetVector(pos, FBModelTransformationType.kModelInverse_Translation, True)
         print pos
+    else:
+        pos = mvu.GetRelativePositionAtTime(ball, root, key.Time)
+        #globalPos = mvu.GetGlobalPositionAtTime(ball, key.Time)
+        #rootPos = mvu.GetGlobalPositionAtTime(root, key.Time)
+        #pos = globalPos - rootPos
         
-        ballTXCurve.KeyAdd(key.Time, pos[0])
-        ballTYCurve.KeyAdd(key.Time, pos[1])
-        ballTZCurve.KeyAdd(key.Time, pos[2])
-    #else:
-    #    pos = mvu.GetRelativePositionAtTime(ball, root, key.Time)
-        
+    k = ballTXCurve.KeyAdd(key.Time, pos[0])
+    k = ballTXCurve.Keys[k]
+    k.Interpolation = FBInterpolation.kFBInterpolationLinear
+    k = ballTYCurve.KeyAdd(key.Time, pos[1])
+    k = ballTXCurve.Keys[k]
+    k.Interpolation = FBInterpolation.kFBInterpolationLinear
+    k = ballTZCurve.KeyAdd(key.Time, pos[2])
+    k = ballTXCurve.Keys[k]
+    k.Interpolation = FBInterpolation.kFBInterpolationLinear
 
 
 

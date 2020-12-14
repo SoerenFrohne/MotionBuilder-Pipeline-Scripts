@@ -1,4 +1,9 @@
-import sys 
+from pyfbsdk import *
+import os 
+import SceneUtils as su; reload(su)
 
-for p in sys.path:
-    print p
+sourceCharacter = su.FindCharacter("Source")
+character = su.FindCharacter("Character")
+
+#su.PlotToSkeleton(character)
+su.PlotToControlRig(character)

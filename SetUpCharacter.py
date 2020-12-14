@@ -1,5 +1,6 @@
 from pyfbsdk import *
 import os 
+import SceneUtils as su; reload(su)
 
 # GLOBAL_PARAMETERS
 ROOT_NAME = "Hips" 
@@ -38,3 +39,14 @@ for joint in joints:
 
 sourceCharacter.SetCharacterizeOn(True)
 FBSystem().Scene.Evaluate()
+
+# Make avatar character follow source character
+character = su.FindCharacter("Character")
+character.InputType = FBCharacterInputType.kFBCharacterInputCharacter
+character.InputSource = sourceCharacter
+character.PropertyList.Find('ForceActorSpace').Data = True
+FBSystem().Scene.Evaluate()
+
+# Plot current changes
+su.PlotToSkeleton(character)
+su.PlotToControlRig(character)
