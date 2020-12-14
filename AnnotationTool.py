@@ -34,12 +34,17 @@ def ClearCurve(control, event):
 
 def SetCurve(control, event):
     LoadCurve()
-    time = FBTime(0, 0, 0, int(startFrame.Value))
+    s = int(startFrame.Value)
+    e = int(endFrame.Value)
+    time = FBTime(0, 0, 0, s)
     annotationsCurve.KeyAdd(time, flags.asByte)
-    time = FBTime(0, 0, 0, int(endFrame.Value))
+    time = FBTime(0, 0, 0, e)
     annotationsCurve.KeyAdd(time, flags.asByte)
     for key in annotationsCurve.Keys:
         key.Interpolation = FBInterpolation.kFBInterpolationConstant
+
+    startFrame.Value = e + 1
+    endFrame.Value = fStop
 
 def PopulateLayout(mainLayout):
     x = FBAddRegionParam(5, FBAttachType.kFBAttachLeft, "")
