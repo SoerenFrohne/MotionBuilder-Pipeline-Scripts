@@ -19,7 +19,8 @@ class FlagsBits(ctypes.LittleEndianStructure):
         ("catch", c_uint16, 1),
         ("shot", c_uint16, 1),
         ("feint", c_uint16, 1),
-        ("standard", c_uint16, 1)
+        ("standard", c_uint16, 1),
+        ("lift", c_uint16, 1)
     ]
 
 

@@ -10,6 +10,11 @@
 
 from pyfbsdk import *
 
+
+def IsUp(key):
+    return key.Value > 0.5
+
+
 # GLOBAL_PARAMETERS
 NAMESPACE = "mixamorig"
 FOREARM_NAME = "RightForeArm"
@@ -111,6 +116,26 @@ for i in range(len(reversalsX)):
 
     key = candidateFCurve.Keys[y]
     key.Interpolation = FBInterpolation.kFBInterpolationLinear
+
+# Reduce keys
+consecutivesUps = 0
+redundantKeyIntervals = []
+for frame in range(len(candidateFCurve.Keys)):
+    key = candidateFCurve.Keys[frame]
+
+    if IsUp(key):
+        consecutivesUps += 1
+        if consecutivesUps == 3:
+            redundantKeyIntervals.append(candidateFCurve.Keys[frame - 2].Time)
+    else:
+        if consecutivesUps >= 3:
+            redundantKeyIntervals.append(candidateFCurve.Keys[frame - 1].Time)
+        consecutivesUps = 0
+
+    key.Interpolation = FBInterpolation.kFBInterpolationLinear
+
+for r in range(0, len(redundantKeyIntervals), 2):
+    candidateFCurve.KeyDelete(redundantKeyIntervals[r], redundantKeyIntervals[r + 1], False)
 
 # Clean up
 if ROOT_NAME is "":

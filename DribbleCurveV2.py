@@ -18,12 +18,11 @@ reload(su)
 def IsUp(key):
     return key.Value > 0.5
 
-
 GROUND_OFFSET = 9.0
 BALL_NAME = "Ball"
 ROOT_NAME = "mixamorig:Hips"
 CONSTRAINT_NAME = "Ball2RightHand"
-CONSTRAINT_TIME = 6
+CONSTRAINT_TIME = 2
 
 # Load dependencies
 scene = FBSystem().Scene
@@ -48,6 +47,7 @@ ballTYCurve.EditClear()
 ballTZCurve.EditClear()
 
 constraint.Active = True
+constraint.Weight.Value = 100.0
 constraint.Weight.SetAnimated(True)
 weightNode = constraint.Weight.GetAnimationNode()
 weightCurve = weightNode.FCurve
@@ -57,26 +57,6 @@ weightCurve.EditClear()
 candidate = ball.PropertyList.Find('IsUpCandidate')
 candidateAnimNode = candidate.GetAnimationNode()
 candidateFCurve = candidateAnimNode.FCurve
-
-# Reduce keys
-# consecutivesUps = 0
-# redundantKeyIntervals = []
-# for frame in range(len(candidateFCurve.Keys)):
-#     key = candidateFCurve.Keys[frame]
-#
-#     if IsUp(key):
-#         consecutivesUps += 1
-#         if consecutivesUps == 3:
-#             redundantKeyIntervals.append(candidateFCurve.Keys[frame-2].Time)
-#     else:
-#         if consecutivesUps >= 3:
-#             redundantKeyIntervals.append(candidateFCurve.Keys[frame-1].Time)
-#         consecutivesUps = 0
-#
-#     key.Interpolation = FBInterpolation.kFBInterpolationLinear
-#
-# for r in range(0, len(redundantKeyIntervals), 2):
-#     candidateFCurve.KeyDelete(redundantKeyIntervals[r], redundantKeyIntervals[r+1], False)
 
 # Calculate down positions
 for frame in range(1, len(candidateFCurve.Keys)):
@@ -104,10 +84,12 @@ for frame in range(1, len(candidateFCurve.Keys)):
         else:
             print "Up:", key.Time
             pos = mvu.GetRelativePositionAtTime(ball, root, key.Time)
+            weightCurve.KeyAdd(FBTime(0,0,0,timeFrame), 100.0)
 
         ballTXCurve.KeyAdd(key.Time, pos[0])
         ballTYCurve.KeyAdd(key.Time, pos[1])
         ballTZCurve.KeyAdd(key.Time, pos[2])
+
 
 # Set constraints (This have to be in an extra loop)
 for frame in range(1, len(candidateFCurve.Keys)):
@@ -116,10 +98,15 @@ for frame in range(1, len(candidateFCurve.Keys)):
     timeFrame = int(key.Time.GetFrame())
     if fStart <= timeFrame <= fStop:
         if not IsUp(key):
+            preUp = candidateFCurve.Keys[frame - 1]
+            nextUp = candidateFCurve.Keys[frame + 1]
+            weightCurve.KeyAdd(FBTime(0, 0, 0, preUp.Time.GetFrame() + CONSTRAINT_TIME), 0.0)
             weightCurve.KeyAdd(key.Time, 0.0)
+            weightCurve.KeyAdd(FBTime(0, 0, 0, nextUp.Time.GetFrame() - CONSTRAINT_TIME), 0.0)
         else:
             weightCurve.KeyAdd(FBTime(0, 0, 0, timeFrame), 100.0)
             #weightCurve.KeyAdd(FBTime(0,0,0,timeFrame + CONSTRAINT_TIME), 100.0)
+
 
 # Set Interpolation to linear
 su.SetLinearTangents(ballTXCurve)
@@ -127,5 +114,5 @@ su.SetLinearTangents(ballTYCurve)
 su.SetLinearTangents(ballTZCurve)
 su.SetLinearTangents(weightCurve)
 
-# constraint.Active = False
+#constraint.Active = False
 playerControl.GotoStart()
