@@ -9,7 +9,6 @@
 #######################################################
 
 from pyfbsdk import *
-import os
 
 # GLOBAL_PARAMETERS
 NAMESPACE = "mixamorig"
@@ -25,14 +24,15 @@ BALL_OFFSET = 9.0  # Radius of the ball
 # Calculate transform matrix of an object (t1) relative to another one (t2)
 # You can also use FBGetLocalMatrix(result, mat2, mat1) directly on matrices.
 def get_relative_transform(t1, t2):
-    mat1 = FBMatrix(); 
+    mat1 = FBMatrix();
     t1.GetMatrix(mat1)
-    
-    mat2 = FBMatrix(); 
+
+    mat2 = FBMatrix();
     t2.GetMatrix(mat2)
     mat2.Inverse()
 
     return mat2 * mat1
+
 
 # Load dependencies
 scene = FBSystem().Scene
@@ -44,8 +44,8 @@ playerControl.GotoStart()
 # Load models and clean up previous edits
 if ROOT_NAME != "":
     root = FBFindModelByLabelName(ROOT_NAME)
-else :
-    root = FBCreateObject( "Browsing/Templates/Elements", "Null", "root" )
+else:
+    root = FBCreateObject("Browsing/Templates/Elements", "Null", "root")
     print "No character root existing: Root created manually"
     root.Show = True
 rightArm = FBFindModelByLabelName(NAMESPACE + ":" + FOREARM_NAME)
@@ -59,14 +59,14 @@ candidateFCurve = candidateAnimNode.FCurve
 candidateFCurve.EditClear()
 
 # Get local ground value
-if root: 
+if root:
     origin = FBMatrix()
     localOrigin = FBMatrix()
-    rootTransform = FBMatrix(); 
+    rootTransform = FBMatrix();
     root.GetMatrix(rootTransform)
     FBGetLocalMatrix(localOrigin, rootTransform, origin)
     LOCAL_GROUND = localOrigin[13]
-else: 
+else:
     LOCAL_GROUND = 0
 
 # Access rotation curve of arm
@@ -94,24 +94,24 @@ print "Found Reversals:", reversalsX
 
 # Loop 1: Add keys and set non-numeric properties
 isLastUp = True
-isCurrentUp = True    
-for i in range(len(reversalsX)):    
+isCurrentUp = True
+for i in range(len(reversalsX)):
     time = FBTime(0, 0, 0, reversalsX[i])
     playerControl.Goto(time)
     scene.Evaluate()
 
     # set up y-translation curve
     isCurrentUp = rightArm.Rotation[1] > ROT_MIN
-    
+
     if isCurrentUp == False and isLastUp == True:
         y = candidateFCurve.KeyAdd(time, 0)
     else:
         y = candidateFCurve.KeyAdd(time, 100)
     isLastUp = isCurrentUp
-    
+
     key = candidateFCurve.Keys[y]
     key.Interpolation = FBInterpolation.kFBInterpolationLinear
-    
+
 # Clean up
 if ROOT_NAME is "":
     FBDeleteObjectsByName(root.Name)

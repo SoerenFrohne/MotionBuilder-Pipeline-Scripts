@@ -1,5 +1,6 @@
 from pyfbsdk import *
 import os 
+import time
 import SceneUtils as su; reload(su)
 
 # GLOBAL_PARAMETERS
@@ -12,8 +13,9 @@ fStart = int(playerControl.ZoomWindowStart.GetFrame())
 fStop = int(playerControl.ZoomWindowStop.GetFrame())
 playerControl.GotoStart()
 
-# Load model
+# Load models
 root = FBFindModelByLabelName(ROOT_NAME)
+character = su.FindCharacter("Character")
 
 # Change namespace
 root.ProcessNamespaceHierarchy(FBNamespaceAction.kFBRemoveAllNamespace, '', '')
@@ -40,13 +42,18 @@ for joint in joints:
 sourceCharacter.SetCharacterizeOn(True)
 FBSystem().Scene.Evaluate()
 
+time.sleep(0.1)
+
 # Make avatar character follow source character
-character = su.FindCharacter("Character")
-character.InputType = FBCharacterInputType.kFBCharacterInputCharacter
+character.ActiveInput = False
 character.InputSource = sourceCharacter
+character.InputType = FBCharacterInputType.kFBCharacterInputCharacter
 character.PropertyList.Find('ForceActorSpace').Data = True
+character.ActiveInput = True
 FBSystem().Scene.Evaluate()
 
+time.sleep(0.1)
+
 # Plot current changes
-su.PlotToSkeleton(character)
-su.PlotToControlRig(character)
+#su.PlotToSkeleton(character)
+#su.PlotToControlRig(character)

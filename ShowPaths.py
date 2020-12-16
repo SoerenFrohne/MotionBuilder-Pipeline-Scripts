@@ -2,8 +2,15 @@ from pyfbsdk import *
 import os 
 import SceneUtils as su; reload(su)
 
-scene = FBSystem().Scene
-pose = su.FindPose("GrabBall")
+
 character = su.FindCharacter("Character")
-su.Pose(character, pose, False)
-su.Pose(character, pose, True)
+
+layer = FBSystem().CurrentTake.GetLayerByName("HandPoses")
+if layer: 
+    layer.FBDelete()
+su.PlotToSkeleton(character)
+su.DeleteConstraints()
+su.DeleteCharacters()
+su.DeleteControlRigs()
+skeleton = FBFindModelByLabelName("Reference")
+su.DeleteModel(skeleton)

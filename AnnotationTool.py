@@ -30,7 +30,11 @@ def SetFlag(control, event):
     print "Flag changed to", bin(flags.asByte), "(", flags.asByte,")"
 
 def ClearCurve(control, event):
+    global annotationsCurve, startFrame, endFrame
+    LoadCurve()
     annotationsCurve.EditClear()
+    startFrame.Value = 1
+    endFrame.Value = 0
 
 def SetCurve(control, event):
     LoadCurve()
@@ -44,7 +48,7 @@ def SetCurve(control, event):
         key.Interpolation = FBInterpolation.kFBInterpolationConstant
 
     startFrame.Value = e + 1
-    endFrame.Value = fStop
+    endFrame.Value = int(playerControl.ZoomWindowStop.GetFrame())
 
 def PopulateLayout(mainLayout):
     x = FBAddRegionParam(5, FBAttachType.kFBAttachLeft, "")

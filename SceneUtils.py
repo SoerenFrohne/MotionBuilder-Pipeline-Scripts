@@ -8,7 +8,8 @@ def FindCharacter(name):
     for c in characters:
         if c.Name == name:
             return c
-            
+
+
 def FindPose(name):
     scene = FBSystem().Scene
     poses = scene.CharacterPoses
@@ -16,6 +17,13 @@ def FindPose(name):
         print p.Name
         if p.Name == name:
             return p
+
+
+def FindConstraint(name):
+    constraints = FBSystem().Scene.Constraints
+    for c in constraints:
+        if c.Name == name:
+            return c
 
 
 def PlotToSkeleton(character):
@@ -46,7 +54,8 @@ def PlotToControlRig(character):
     character.PlotAnimation(FBCharacterPlotWhere.kFBCharacterPlotOnControlRig, plotOptions)
     FBSystem().Scene.Evaluate()
     print "Plotted to Control Rig"
-    
+
+
 def Pose(character, pose, mirror):
     """
     Adds a pose to a character
@@ -60,3 +69,78 @@ def Pose(character, pose, mirror):
     character.SelectModels(True, False, True, False)
     pose.PastePose(character, poseOptions)
     FBSystem().Scene.Evaluate()
+
+
+def DeselectAll():
+    for comp in FBSystem().Scene.Components:
+        comp.Selected = False
+    FBSystem().Scene.Evaluate()
+
+
+def SelectEffectors(root, pattern):
+    if root and pattern:
+        for child in root.Children:
+            if child.Name.find(pattern) != -1 and child.Name.find("Effector") != -1:
+                child.Selected = True
+    else:
+        print "Error selecting models: Root or pattern not available"
+    FBSystem().Scene.Evaluate()
+
+
+def SelectModels(root, pattern):
+    if root and pattern:
+        for child in root.Children:
+            if child.Name.find(pattern) != -1:
+                # print "Selected model:", child.Name
+                child.Selected = True
+            SelectModels(child, pattern)
+    else:
+        print "Error selecting models: Root or pattern not available"
+    FBSystem().Scene.Evaluate()
+
+
+def DeleteConstraints():
+    constraints = FBSystem().Scene.Constraints
+    toDelete = []
+    for c in constraints:
+        if c.Name != "Character":
+            toDelete.append(c)
+    for t in toDelete:
+        t.FBDelete()
+    FBSystem().Scene.Evaluate()
+
+
+def DeleteCharacters():
+    characters = FBSystem().Scene.Characters
+    toDelete = []
+    for c in characters:
+        toDelete.append(c)
+    for t in toDelete:
+        t.FBDelete()
+    FBSystem().Scene.Evaluate()
+
+
+def DeleteControlRigs():
+    sets = FBSystem().Scene.ControlSets
+    toDelete = []
+    for c in sets:
+        toDelete.append(c)
+    for t in toDelete:
+        t.FBDelete()
+    FBSystem().Scene.Evaluate()
+
+
+def DeleteModel(model):
+    # Always destroy from the last children to the first
+    while len(model.Children) > 0:
+        DeleteModel(model.Children[-1])
+    model.FBDelete()
+
+
+def SetLinearTangents(fCurve):
+    for key in fCurve.Keys:
+        key.Interpolation = FBInterpolation.kFBInterpolationLinear
+
+def SetConstantTangents(fCurve):
+    for key in fCurve.Keys:
+        key.Interpolation = FBInterpolation.kFBInterpolationConstant
