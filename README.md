@@ -1,1 +1,1 @@
-UserMade
+# User made MotionBuilder scripts
